@@ -1,5 +1,7 @@
 Revision history for Perl extension later
 
-0.01  2007-01-04
+0.01  2007-01-23
 	- first working version
 
+0.02  2007-01-23
+        - fixed MANIFEST

@@ -5,3 +5,6 @@ Revision history for Perl extension later
 
 0.02  2007-01-23
         - fixed MANIFEST
+
+0.03  2007-01-24
+        - POD updates

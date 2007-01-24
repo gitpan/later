@@ -16,7 +16,7 @@ use Symbol;
 use Data::Dumper;
 use Carp qw(croak);
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 #--------------------------------------------------------------------
 #
@@ -154,7 +154,7 @@ And somewhere else we use Foo and call bar():
     bar('some','arguments');
 
 Now, for a number of possibly rather unsane reasons you might want
-to delay actually evaling 'use Foo' until I<bar> is called at runtime. 
+to delay actually evaling 'use Foo' until C<bar> is called at runtime. 
 To do that, change the former code into:
 
     use later 'Foo', qw(bar);
@@ -190,9 +190,9 @@ or
 
 =item C<< use later 'Module::Name', arg1 => $value1, ...; >>
 
-Postpone C<use Module::Name> until an undefined subroutine is found
+Postpones C<use Module::Name> until an undefined subroutine is found
 in the current package at runtime. Only when it happens shall
-I<later> evaluate 'use I<Module::Name>' inside the current package, 
+C<later> evaluate c<use Module::Name> inside the current package, 
 hence hopefully importing the undefined subroutine into the current
 package's namespace. The formerly undefined subroutine is then called
 as if nothing unusual had happened.
@@ -200,17 +200,17 @@ as if nothing unusual had happened.
 Any further encounter with an undefined subroutine will still result in the
 standard 'Undefined subroutine' error.
 
-If multiple modules are called with c<use later> inside the same package, 
+If multiple modules are called with C<use later> inside the same package, 
 they will all be used upon the first encounter with an undefined subroutine
 in this package, despite the fact that only one of them should export the 
 specific undefined subroutine.
 
-If I<Module::Name> is called with import arguments, those will be passed
+If C<Module::Name> is called with import arguments, those will be passed
 to the module when it is used. Note that the C<later> pragma does not support
 passing code refs as import arguments.
 
 You may C<use later> modules that C<use later> other modules (and so on recursively).
-It will work.
+It works.
 
 Examples:
 
@@ -229,20 +229,21 @@ or
 Notice that when passing import arguments together with the module name,
 you have to separate them from the module name with a comma ','.
 
+Notice too that function names coming from modules that are used later must
+end with parenthesis in order for your code to compile (ex: C<foo()> instead of C<foo>).
+
 =back
 
 =head1 BUGS AND LIMITATIONS
 
-This module is a proof of concept and does not support all 
-possible use cases.
+This module is a proof of concept.
 
 The C<later> pragma will not work properly if the calling
-module has an AUTOLOAD function, since it will
-conflict with the AUTOLOAD that C<later> silently injects
-into both the calling module and the called module.
+module or the postponed module has an AUTOLOAD function, since it will
+conflict with the AUTOLOAD that C<later> silently injects into them.
 
 The C<later> pragma does not support passing code references
-as import arguments to the used module.
+as import arguments to the postponed module.
 
 Since postponed modules are searched for and compiled only
 during runtime, any error in the module (compilation or other) is delayed
@@ -253,7 +254,7 @@ As far as I am concerned, I fail to see any sane situation where
 this pragma would be needed that cannot be implemented in a safer
 way without C<later>. You have been warned :)
 
-Should you find other bugs or suggest changes, please send an email
+Should you find bugs or suggest changes, please send an email
 to C<< <erwan@cpan.org> >>.
 
 =head1 SEE ALSO

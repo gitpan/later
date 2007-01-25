@@ -18,6 +18,8 @@ use later 'Test::More', tests => 5;
 use later "My::Module2", qw(bar); 
 use later 'My::Module6';
 
+BEGIN { $later::DEBUG = 1; }
+
 is(bar(),"bar","bar() from My::Module2");
 is(My::Module2::foo(),"foo","foo() from My::Module2");
 is(My::Module2::oops(),"oops","oops() from My::Module2");

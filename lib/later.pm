@@ -1,22 +1,29 @@
 #
-#   $Id: later.pm,v 1.7 2007/01/23 16:05:12 erwan Exp $
+#   $Id: later.pm,v 1.8 2007/01/24 14:41:58 erwan Exp $
 #
 #   postpone using a module until it is needed at runtime
 #
 #   2007-01-09 erwan First version
 #   2007-01-22 erwan Support import arguments and object orientation
 #   2007-01-23 erwan Support recursive 'use later' calls
+#   2007-01-25 erwan More pod + debug messages
 #
 
 package later;
 
 use strict;
+use 5.006;
 use warnings;
 use Symbol;
 use Data::Dumper;
 use Carp qw(croak);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+
+use vars qw($DEBUG);
+BEGIN {
+    $DEBUG ||= 0;
+}
 
 #--------------------------------------------------------------------
 #
@@ -52,12 +59,14 @@ sub import {
     # add an AUTOLOAD to the caller module
     if (!exists $modules{$caller}) {
 	$modules{$caller} = {};
+	print "use later: setting AUTOLOAD in package $caller\n" if ($DEBUG);
 	*{ qualify_to_ref('AUTOLOAD',$caller) } = *{ qualify_to_ref('_autoload','later') };
     }
 
     $modules{$caller}->{$latered} = \@_;
 
     # add an AUTOLOAD even to the postponed module, to handle full name calls (ex: My::Module::foo() )
+    print "use later: setting AUTOLOAD in package $latered\n" if ($DEBUG);
     *{ qualify_to_ref('AUTOLOAD',$latered) } = *{ qualify_to_ref('_autoload','later') };
 }
 
@@ -100,6 +109,8 @@ sub _autoload {
 sub _use_module {
     my ($caller,$module,@args) = @_;
 
+    print "use later: using module $module in package $caller\n" if ($DEBUG);
+
     # the main issue with the delayed 'eval "package; use *"' method is how
     # to pass import arguments to the used module. I unfortunately didn't 
     # find any better way than converting them to a string with Data::Dumper. 
@@ -139,7 +150,7 @@ Assuming we have a module Foo exporting the function bar():
     package Foo;
     
     use base qw(Exporter);
-    our @EXPORT_OK = qw(bar);
+    our @EXPORT = qw(bar);
 
     sub bar {
 	# do whatever
@@ -149,15 +160,15 @@ Assuming we have a module Foo exporting the function bar():
 
 And somewhere else we use Foo and call bar():
 
-    use Foo qw(bar);
+    use Foo;
      
     bar('some','arguments');
 
 Now, for a number of possibly rather unsane reasons you might want
-to delay actually evaling 'use Foo' until C<bar> is called at runtime. 
-To do that, change the former code into:
+to delay running C<use Foo> until a function in module C<Foo> (anyone of them) 
+is called at runtime. To do that, change the former code into:
 
-    use later 'Foo', qw(bar);
+    use later 'Foo';
 
     bar('some','arguments');
 
@@ -167,18 +178,24 @@ This works even for object packages:
 
     my $object = new My::Classy::Class;
 
-And supports import arguments:
+And supports passing import arguments to the module that is used later:
 
     use later 'My::Classy::Class', do_fuss => 1;
 
     my $object = new My::Classy::Class;
 
+To see some debug messages, do:
+
+    BEGIN { $later::DEBUG = 1; };
+
+    use later 'Data::Dumper';
+    print Dumper('bob');
 
 
 =head1 DESCRIPTION
 
 The C<later> pragma enables you to postpone using
-a module until its exported methods are needed during runtime.
+a module until any of its methods is needed during runtime.
 
 =head1 API
 
@@ -190,9 +207,9 @@ or
 
 =item C<< use later 'Module::Name', arg1 => $value1, ...; >>
 
-Postpones C<use Module::Name> until an undefined subroutine is found
+Delays running C<use Module::Name> until an undefined subroutine is found
 in the current package at runtime. Only when it happens shall
-C<later> evaluate c<use Module::Name> inside the current package, 
+C<later> evaluate C<use Module::Name> inside the current package, 
 hence hopefully importing the undefined subroutine into the current
 package's namespace. The formerly undefined subroutine is then called
 as if nothing unusual had happened.
@@ -205,9 +222,9 @@ they will all be used upon the first encounter with an undefined subroutine
 in this package, despite the fact that only one of them should export the 
 specific undefined subroutine.
 
-If C<Module::Name> is called with import arguments, those will be passed
-to the module when it is used. Note that the C<later> pragma does not support
-passing code refs as import arguments.
+If C<use later 'Module::Name'> is followed by import arguments, those will be passed
+to C<Module::Name> upon using it. Note that the C<later> pragma does not support
+passing import arguments that are code refs.
 
 You may C<use later> modules that C<use later> other modules (and so on recursively).
 It works.
@@ -216,30 +233,49 @@ Examples:
 
     use later 'Data::Dumper';
 
-    # Data::Dumper is effectively used upon calling 'Dumper'
+    # runs 'use Data::Dumper' upon executing Dumper()
     print Dumper([1,2,3]);
 
 or 
 
     use later 'MyLog', level => 1;
  
-    # MyLog is used with the import parameters 'level => 1' upon calling 'mylog'
+    # runs 'use MyLog level => 1' upon executing mylog()
     mylog("some message");
 
-Notice that when passing import arguments together with the module name,
-you have to separate them from the module name with a comma ','.
-
-Notice too that function names coming from modules that are used later must
-end with parenthesis in order for your code to compile (ex: C<foo()> instead of C<foo>).
-
 =back
+
+=head1 DIFFERENCE WITH OTHER SIMILAR MODULES
+
+=head2 C<later> versus C<autouse>
+
+With C<autouse> you must specify which functions from the autoused module
+should trigger using the module. 
+With C<later>, you don't have to since any undefined function will have that effect.
+
+C<autouse> considers all arguments following C<use autouse MODULE> to be 
+names of functions from C<MODULE>. C<later> on the other hand handles them
+as real import arguments, to be passed to the module's import function.
+
+=head2 C<later> versus C<Class::Autouse>
+
+A module C<Foo::Bar> declared with C<Class::Autouse> is used when one of its methods
+is called with the class style syntax C<Foo::Bar::bob()>. Calling C<bob()> only does
+not trigger using C<Foo::Bar>. C<later> supports both syntax.
+
+=head2 C<later> versus C<load>, C<AutoLoader>, C<SelfLoader>...
+
+C<load>, C<AutoLoader>, C<SelfLoader> and the like require modules to
+be divided in two parts separated by a C<__DATA__> or C<__END__>, one 
+compiled at once and one compiled later on during runtime. Those modules
+are built for a different purpose than C<later>.
 
 =head1 BUGS AND LIMITATIONS
 
 This module is a proof of concept.
 
 The C<later> pragma will not work properly if the calling
-module or the postponed module has an AUTOLOAD function, since it will
+module or the postponed module have an AUTOLOAD function, since it will
 conflict with the AUTOLOAD that C<later> silently injects into them.
 
 The C<later> pragma does not support passing code references
@@ -259,11 +295,11 @@ to C<< <erwan@cpan.org> >>.
 
 =head1 SEE ALSO
 
-See 'load', 'SelfLoader', 'AutoLoader'.
+See 'load', 'SelfLoader', 'AutoLoader', 'autouse', 'Class::Autouse'.
 
 =head1 VERSION
 
-$Id: later.pm,v 1.7 2007/01/23 16:05:12 erwan Exp $
+$Id: later.pm,v 1.8 2007/01/24 14:41:58 erwan Exp $
 
 =head1 AUTHOR
 

@@ -1,5 +1,5 @@
 #
-#   $Id: 01_test_compile.t,v 1.2 2007/01/09 17:18:28 erwan Exp $
+#   $Id: 01_test_compile.t,v 1.2 2007-01-09 17:18:28 erwan Exp $
 #
 #   test that 'later' compiles
 #

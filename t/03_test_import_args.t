@@ -1,5 +1,5 @@
 #
-#   $Id: 03_test_import_args.t,v 1.2 2007/01/22 15:58:27 erwan Exp $
+#   $Id: 03_test_import_args.t,v 1.2 2007-01-22 15:58:27 erwan Exp $
 #
 #   test using later a module with import arguments
 #

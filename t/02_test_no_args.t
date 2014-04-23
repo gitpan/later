@@ -1,5 +1,5 @@
 #
-#   $Id: 02_test_no_args.t,v 1.6 2007/01/23 14:09:56 erwan Exp $
+#   $Id: 02_test_no_args.t,v 1.6 2007-01-23 14:09:56 erwan Exp $
 #
 #   test using later a module with no import arguments
 #

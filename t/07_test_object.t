@@ -1,5 +1,5 @@
 #
-#   $Id: 07_test_object.t,v 1.1 2007/01/22 15:58:27 erwan Exp $
+#   $Id: 07_test_object.t,v 1.1 2007-01-22 15:58:27 erwan Exp $
 #
 #   test that using later a module that can't compile makes the code die
 #

@@ -1,5 +1,5 @@
 #
-#   $Id: 09_test_later_in_later.t,v 1.1 2007/01/23 14:09:56 erwan Exp $
+#   $Id: 09_test_later_in_later.t,v 1.1 2007-01-23 14:09:56 erwan Exp $
 #
 #   test that using later a module that can't compile makes the code die
 #

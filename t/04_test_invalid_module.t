@@ -1,5 +1,5 @@
 #
-#   $Id: 04_test_invalid_module.t,v 1.1 2007/01/09 17:18:28 erwan Exp $
+#   $Id: 04_test_invalid_module.t,v 1.1 2007-01-09 17:18:28 erwan Exp $
 #
 #   test that using later a module that can't compile makes the code die
 #

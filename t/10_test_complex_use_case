@@ -1,5 +1,5 @@
 #
-#   $Id: 10_test_complex_use_case,v 1.1 2007/01/23 16:05:12 erwan Exp $
+#   $Id: 10_test_complex_use_case,v 1.2 2007-01-25 15:51:10 erwan Exp $
 #
 #   test that using later a module that can't compile makes the code die
 #

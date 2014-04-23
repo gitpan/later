@@ -1,5 +1,5 @@
 #
-#   $Id: 08_test_export_ok.t,v 1.4 2007/01/23 16:05:12 erwan Exp $
+#   $Id: 08_test_export_ok.t,v 1.4 2007-01-23 16:05:12 erwan Exp $
 #
 #   test that using later a module that can't compile makes the code die
 #

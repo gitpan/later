@@ -1,5 +1,5 @@
 #
-#   $Id: later.pm,v 1.8 2007/01/24 14:41:58 erwan Exp $
+#   $Id: later.pm,v 1.9 2007-01-25 15:51:10 erwan Exp $
 #
 #   postpone using a module until it is needed at runtime
 #
@@ -7,6 +7,7 @@
 #   2007-01-22 erwan Support import arguments and object orientation
 #   2007-01-23 erwan Support recursive 'use later' calls
 #   2007-01-25 erwan More pod + debug messages
+#   2014-04-23 aelshesh Patch to support autoload subs
 #
 
 package later;
@@ -18,7 +19,7 @@ use Symbol;
 use Data::Dumper;
 use Carp qw(croak);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use vars qw($DEBUG);
 BEGIN {
@@ -89,6 +90,10 @@ sub _autoload {
 	foreach my $module (keys %{$modules{$pkg}}) {
 	    _use_module($pkg,$module,@{$modules{$pkg}->{$module}});
 	    delete $modules{$pkg}->{$module};
+	    if ($module->can('autoload')) {
+		*{ qualify_to_ref('AUTOLOAD', $module) } = *{ qualify_to_ref('autoload', $module) };
+	    }
+	    
 	}
     }
 
@@ -299,11 +304,12 @@ See 'load', 'SelfLoader', 'AutoLoader', 'autouse', 'Class::Autouse'.
 
 =head1 VERSION
 
-$Id: later.pm,v 1.8 2007/01/24 14:41:58 erwan Exp $
+$Id: later.pm,v 1.9 2007-01-25 15:51:10 erwan Exp $
 
-=head1 AUTHOR
+=head1 AUTHOR/CREDITS
 
 Erwan Lemonnier C<< <erwan@cpan.org> >>
+Patched by Dalia Essam (aelshesh)
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -315,8 +321,3 @@ This is free code and comes with no warranty. The author declines any personal
 responsibility regarding the use of this code or the consequences of its use.
 
 =cut
-
-
-
-
-
